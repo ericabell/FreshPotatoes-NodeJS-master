@@ -46,17 +46,25 @@ function getFilmRecommendations(req, res) {
             }
           }
         },
-        limit: 3
+        limit: 10
       })
       .then( (results) => {
         res.json({'recommendations': results,
-                  'meta': {'limit': 3, 'offset': 0}
+                  'meta': {'limit': 10, 'offset': 0}
       });
       })
     })
     .catch( (err) => {
-      res.send(err);
+      res.status(422);
+      res.json({message: '"message" key missing'});
     })
 }
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  console.log('caught missing route');
+  res.status(404).json({message: '"message" key missing'});
+});
+
 
 module.exports = app;
