@@ -6,15 +6,9 @@ const sqlite = require('sqlite'),
 
 const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = process.env;
 
-var sequelize = new Sequelize(process.env.DB_PATH, '', '', {
-dialect: 'sqlite',
-storage: 'file:data.db'
-});
 
-sequelize.sync()
-  .then(function(){
-    console.log('synced')
-  })
+
+const models = require('./models');
 
 // START SERVER
 Promise.resolve()
@@ -27,7 +21,13 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let filmId = req.params.id;
-
+  models.films.findAll({})
+    .then( (results) => {
+      res.json(results);
+    })
+    .catch( (err) => {
+      res.send(err);
+    })
 }
 
 module.exports = app;
