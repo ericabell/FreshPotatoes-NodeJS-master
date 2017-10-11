@@ -20,10 +20,39 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
+  // let queryKeys = Object.keys(req.query);
+  // console.log(queryKeys);
+  // if( !('message' in queryKeys) ) {
+  //   res.send(422);
+  // }
+
   let filmId = req.params.id;
-  models.films.findAll({})
-    .then( (results) => {
-      res.json(results);
+  // 1. find the film that was passed in
+  models.films.findById(filmId)
+    .then( (film) => {
+      // 2. use the genre_id to find all films with that genre and Date
+      let lowDate = new Date(film.release_date);
+      let highDate = new Date(film.release_date);
+      lowDate.setFullYear(lowDate.getFullYear() - 15);
+      highDate.setFullYear(highDate.getFullYear() + 15);
+
+      models.films.findAll({
+        where: {
+          genre_id: film['genre_id'],
+          release_date: {
+            $and: {
+              $gt: lowDate  ,
+              $lt: highDate
+            }
+          }
+        },
+        limit: 3
+      })
+      .then( (results) => {
+        res.json({'recommendations': results,
+                  'meta': {'limit': 3, 'offset': 0}
+      });
+      })
     })
     .catch( (err) => {
       res.send(err);
