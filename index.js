@@ -6,6 +6,16 @@ const sqlite = require('sqlite'),
 
 const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = process.env;
 
+var sequelize = new Sequelize(process.env.DB_PATH, '', '', {
+dialect: 'sqlite',
+storage: 'file:data.db'
+});
+
+sequelize.sync()
+  .then(function(){
+    console.log('synced')
+  })
+
 // START SERVER
 Promise.resolve()
   .then(() => app.listen(PORT, () => console.log(`App listening on port ${PORT}`)))
@@ -16,7 +26,8 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
-  res.status(500).send('Not Implemented');
+  let filmId = req.params.id;
+
 }
 
 module.exports = app;
