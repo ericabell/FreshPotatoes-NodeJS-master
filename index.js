@@ -66,12 +66,26 @@ function getFilmRecommendations(req, res) {
         })))
         .then( (responses, body) => {
           console.log('all promises resolved!');
-          console.log(responses[0].body[0]);
+          // console.log(responses[0].body[0]);
+
+          // responses.forEach( (response) => {
+          //   // print the id and number of reviews
+          //   console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
+          // })
+
+          responses = responses.filter( (response) => {
+            if( response.body[0].reviews.length >= 5 ) {
+              return true;
+            } else {
+              return false;
+            }
+          })
 
           responses.forEach( (response) => {
             // print the id and number of reviews
             console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
           })
+
           res.json({'reviews': body})
         })
         .catch( (error) => {
