@@ -50,26 +50,27 @@ function getFilmRecommendations(req, res) {
         // those films who:
         // 1. minimum of 5 reviews
         // 2. average rating greater than 4.0
-        filterMovies(results)
-          .then( (reviews) => {
-            res.json({'recommendations': reviews})
-          })
-        // res.json({'recommendations': results,
-        //           'meta': {'limit': 10, 'offset': 0}
-      });
+        Promise.all(results.map(film => new Promise((resolve, reject)=>{
+          request.get(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`, (err, res, html)=>{
+            if(err){
+              return reject(err);
+            }
+            return resolve(res, html);
+          });
+        })))
+        .then( (reviews) => {
+          res.json({'reviews': reviews.body})
+        })
+
+        .catch( (error) => {
+          res.send(error);
+        });
     })
     .catch( (err) => {
       res.status(422);
       res.json({message: '"message" key missing'});
     })
-}
-
-async function filterMovies(films) {
-  let reviewInfo = films.map( (film) => {
-    return await request.get(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`)
   })
-
-  return reviewInfo;
 }
 
 // catch 404 and forward to error handler
