@@ -50,7 +50,7 @@ function getFilmRecommendations(req, res) {
         // those films who:
         // 1. minimum of 5 reviews
         // 2. average rating greater than 4.0
-        console.log('in results');
+        // console.log('in results');
         Promise.all(results.map(film => new Promise((resolve, reject)=>{
           let options = {
             uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`,
@@ -68,29 +68,29 @@ function getFilmRecommendations(req, res) {
           });
         })))
         .then( (filmsWithReviewInfo) => {
-          console.log('all promises resolved!');
+          // console.log('all promises resolved!');
           // console.log(filmsWithReviewInfo[0].reviews);
 
           // filter movies with at least 5 reviews
           let filmsFiltered = filmsWithReviewInfo.filter( (film) => {
-            console.log(`Checking film_id: ${film.id}`);
+            // console.log(`Checking film_id: ${film.id}`);
             if( film.reviews.length >= 5 ) {
-              console.log(`Has 5 or more reviews`);
+              // console.log(`Has 5 or more reviews`);
               let total = 0;
               film.reviews.forEach( (review) => {
                 total += review.rating;
               })
               let averageRating = total / film.reviews.length;
-              console.log(`Average Rating: ${averageRating}`);
+              // console.log(`Average Rating: ${averageRating}`);
               if( averageRating >= 4.0 ) {
-                console.log(`adding film`);
+                // console.log(`adding film`);
                 film.averageRating = averageRating;
                 return true;
               } else {
                 return false;
               }
             } else {
-              console.log(`doesn't have 5 or more reviews`);
+              // console.log(`doesn't have 5 or more reviews`);
               return false;
             }
           })
@@ -99,7 +99,7 @@ function getFilmRecommendations(req, res) {
           let recommendations = [];
           filmsFiltered.forEach( (film) => {
             // print the id and number of reviews
-            console.log(`id: ${film.id} with ${film.reviews.length} reviews`);
+            // console.log(`id: ${film.id} with ${film.reviews.length} reviews`);
             recommendations.push({id: film.id,
                                   title: film.title,
                                   releaseDate: film['release_date'],
