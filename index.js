@@ -1,6 +1,6 @@
 const sqlite = require('sqlite'),
       Sequelize = require('sequelize'),
-      request = require('request-promise'),
+      request = require('request'),
       express = require('express'),
       app = express();
 
@@ -50,18 +50,26 @@ function getFilmRecommendations(req, res) {
         // those films who:
         // 1. minimum of 5 reviews
         // 2. average rating greater than 4.0
+        console.log('in results');
         Promise.all(results.map(film => new Promise((resolve, reject)=>{
-          request.get(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`, (err, res, html)=>{
+          let options = {
+            uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`,
+            json: true // Automatically parses the JSON string in the response
+          };
+          console.log(options);
+          request.get(options, (err, response, body)=>{
             if(err){
               return reject(err);
             }
-            return resolve(res, html);
+            return resolve(response, body);
           });
         })))
-        .then( (reviews) => {
-          res.json({'reviews': reviews.body})
+        .then( (response, body) => {
+          console.log('all promises resolved!');
+          // console.log(response);
+          console.dir(response[0].body);
+          res.json({'reviews': body})
         })
-
         .catch( (error) => {
           res.send(error);
         });
