@@ -34,6 +34,17 @@ function getFilmRecommendations(req, res) {
       highDate.setFullYear(highDate.getFullYear() + 15);
 
       models.films.findAll({
+        order: [[ "id", "DESC" ]],
+        include: [
+          {
+            model: models.films,
+            as: "films"
+          },
+          {
+            model: models.genres,
+            as: "genres"
+          }
+        ]
         attributes: ['id', 'title', 'release_date', 'genre_id'],
         where: {
           genre_id: film['genre_id'],
