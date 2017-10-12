@@ -58,45 +58,54 @@ function getFilmRecommendations(req, res) {
           };
           // console.log(options);
           request.get(options, (err, response, body)=>{
+            // console.log(`GET request came back for film_id: ${film.id}`);
+            // append the results from review API to the film
+            film.reviews = response.body[0].reviews;
             if(err){
               return reject(err);
             }
-            return resolve(response, body);
+            return resolve(film);
           });
         })))
-        .then( (responses, body) => {
+        .then( (filmsWithReviewInfo) => {
           console.log('all promises resolved!');
-          // console.log(responses[0].body[0]);
+          // console.log(filmsWithReviewInfo[0].reviews);
 
           // filter movies with at least 5 reviews
-          responses = responses.filter( (response) => {
-            if( response.body[0].reviews.length >= 5 ) {
-              return true;
+          let filmsFiltered = filmsWithReviewInfo.filter( (film) => {
+            console.log(`Checking film_id: ${film.id}`);
+            if( film.reviews.length >= 5 ) {
+              console.log(`Has 5 or more reviews`);
+              let total = 0;
+              film.reviews.forEach( (review) => {
+                total += review.rating;
+              })
+              let averageRating = total / film.reviews.length;
+              console.log(`Average Rating: ${averageRating}`);
+              if( averageRating >= 4.0 ) {
+                console.log(`adding film`);
+                film.averageRating = averageRating;
+                return true;
+              } else {
+                return false;
+              }
             } else {
-              return false;
-            }
-          })
-
-          // filter the average rating >= 4
-          responses = responses.filter( (response) => {
-            let total = 0;
-            response.body[0].reviews.forEach( (review) => {
-              total += review.rating;
-            })
-            if( total / response.body[0].reviews.length >= 4.0 ) {
-              return true;
-            } else {
+              console.log(`doesn't have 5 or more reviews`);
               return false;
             }
           })
 
 
           let recommendations = [];
-          responses.forEach( (response) => {
+          filmsFiltered.forEach( (film) => {
             // print the id and number of reviews
-            console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
-            recommendations.push({id: response.body[0].film_id,
-                                  reviews: response.body[0].reviews.length});
+            console.log(`id: ${film.id} with ${film.reviews.length} reviews`);
+            recommendations.push({id: film.id,
+                                  title: film.title,
+                                  releaseDate: film['release_date'],
+                                  genre: film['genre_id'],
+                                  averageRating: film.averageRating,
+                                  reviews: film.reviews.length});
           })
 
           res.json({'recommendations': recommendations,
