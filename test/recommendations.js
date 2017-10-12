@@ -9,6 +9,7 @@ function ok(expression, message) {
 }
 
 describe('Recommendations API', function() {
+  this.timeout(15000);
   describe('returns successful response defaults', function() {
     let cachedResponse;
 

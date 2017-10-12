@@ -116,10 +116,12 @@ function getFilmRecommendations(req, res) {
           res.send(error);
         });
     })
-    .catch( (err) => {
-      res.status(422);
-      res.json({message: '"message" key missing'});
+    .catch( (err) => { // didn't find the id
+      res.status(422).json({message: '"message" key missing'});
     })
+  })
+  .catch( (err) => { // didn't find the id
+    res.status(422).json({message: '"message" key missing'});
   })
 }
 
