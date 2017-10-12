@@ -56,7 +56,7 @@ function getFilmRecommendations(req, res) {
             uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`,
             json: true // Automatically parses the JSON string in the response
           };
-          console.log(options);
+          // console.log(options);
           request.get(options, (err, response, body)=>{
             if(err){
               return reject(err);
@@ -64,10 +64,14 @@ function getFilmRecommendations(req, res) {
             return resolve(response, body);
           });
         })))
-        .then( (response, body) => {
+        .then( (responses, body) => {
           console.log('all promises resolved!');
-          // console.log(response);
-          console.dir(response[0].body);
+          console.log(responses[0].body[0]);
+
+          responses.forEach( (response) => {
+            // print the id and number of reviews
+            console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
+          })
           res.json({'reviews': body})
         })
         .catch( (error) => {
