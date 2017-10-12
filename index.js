@@ -95,10 +95,13 @@ function getFilmRecommendations(req, res) {
           responses.forEach( (response) => {
             // print the id and number of reviews
             console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
-            recommendations.push({id: response.body[0].film_id, reviews: response.body[0].reviews.length});
+            recommendations.push({id: response.body[0].film_id,
+                                  reviews: response.body[0].reviews.length});
           })
 
-          res.json({'recommendations': recommendations})
+          res.json({'recommendations': recommendations,
+                    'meta': { limit: 10, offset: 0 }
+                  });
         })
         .catch( (error) => {
           res.send(error);
