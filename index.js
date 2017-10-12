@@ -68,13 +68,22 @@ function getFilmRecommendations(req, res) {
           console.log('all promises resolved!');
           // console.log(responses[0].body[0]);
 
-          // responses.forEach( (response) => {
-          //   // print the id and number of reviews
-          //   console.log(`id: ${response.body[0].film_id} with ${response.body[0].reviews.length} reviews`);
-          // })
-
+          // filter movies with at least 5 reviews
           responses = responses.filter( (response) => {
             if( response.body[0].reviews.length >= 5 ) {
+              return true;
+            } else {
+              return false;
+            }
+          })
+
+          // filter the average rating >= 4
+          responses = responses.filter( (response) => {
+            let total = 0;
+            response.body[0].reviews.forEach( (review) => {
+              total += review.rating;
+            })
+            if( total / response.body[0].reviews.length >= 4.0 ) {
               return true;
             } else {
               return false;
