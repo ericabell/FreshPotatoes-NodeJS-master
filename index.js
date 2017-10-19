@@ -34,17 +34,10 @@ function getFilmRecommendations(req, res) {
       highDate.setFullYear(highDate.getFullYear() + 15);
 
       models.films.findAll({
-        order: [[ "id", "DESC" ]],
-        include: [
-          {
-            model: models.films,
-            as: "films"
-          },
-          {
-            model: models.genres,
-            as: "genres"
-          }
-        ]
+        // include: [{
+        //     model: models.genres,
+        //     where: { id: Sequelize.col('models.films.genre_id')}
+        // }],
         attributes: ['id', 'title', 'release_date', 'genre_id'],
         where: {
           genre_id: film['genre_id'],
@@ -61,23 +54,36 @@ function getFilmRecommendations(req, res) {
         // those films who:
         // 1. minimum of 5 reviews
         // 2. average rating greater than 4.0
+        //
+        // we can submit ALL the film ids in one request and NOT ONE AT A TIME!
+        // build the comma-separated list of films
+        let filmIdList = '';
+        for( let i=0; i<results.length; i++ ) {
+          filmIdList += results[i].id + ',';
+        }
+        // trash the trailing comma...
+        filmIdList = filmIdList.slice(0,-1);
+        console.log(filmIdList);
         // console.log('in results');
-        Promise.all(results.map(film => new Promise((resolve, reject)=>{
-          let options = {
-            uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${film.id}`,
-            json: true // Automatically parses the JSON string in the response
-          };
-          // console.log(options);
-          request.get(options, (err, response, body)=>{
-            // console.log(`GET request came back for film_id: ${film.id}`);
-            // append the results from review API to the film
-            film.reviews = response.body[0].reviews;
-            if(err){
-              return reject(err);
-            }
-            return resolve(film);
-          });
-        })))
+        let options = {
+          uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIdList}`,
+          json: true // Automatically parses the JSON string in the response
+        };
+        // console.log(options);
+        // TODO: now that we have made the one request to get all the reviews,
+        // go through the reviews and match them up with the films...
+        request.get(options, (err, response, body)=>{
+          // single response will contain all the reviews as a list
+          response.body.forEach( (film) => {
+
+          })
+          film.reviews = response.body[0].reviews;
+          if(err){
+            return reject(err);
+          }
+          return resolve(film);
+        });
+
         .then( (filmsWithReviewInfo) => {
           // console.log('all promises resolved!');
           // console.log(filmsWithReviewInfo[0].reviews);

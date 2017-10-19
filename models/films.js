@@ -37,6 +37,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false
     }
-  }, {timestamps: false})
+  }, {timestamps: false});
+
+  films.associate = function(models) {
+    films.hasOne(models.genres, {as: 'genres', foreignKey: 'genre_id'});
+  }
+
   return films;
 };
