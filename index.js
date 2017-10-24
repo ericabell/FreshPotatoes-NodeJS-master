@@ -21,7 +21,19 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let queryKeys = Object.keys(req.query);
+  console.dir(`${req.query.limit}, ${req.query.offset}`);
   // query keys might be 'limit' and 'offset'
+  let limit = 10;
+  if( req.query.limit ) {
+    limit = parseInt(req.query.limit);
+  }
+  let offset = 0;
+  if( req.query.offset ) {
+    offset = parseInt(req.query.offset);
+  }
+
+  console.log(`limit was received as: ${limit}`);
+  console.log(`offset was received as: ${offset}`);
 
   let filmId = req.params.id;
   // 1. find the film that was passed in
@@ -108,11 +120,26 @@ function getFilmRecommendations(req, res) {
               title: result.title,
               releaseDate: result.release_date,
               genre: result.genre_id,
-              averageRating: Math.round( computeAverageRating(result.reviews) * 10 ) / 10,
+              averageRating: Math.round( computeAverageRating(result.reviews) * 100 ) / 100,
               reviews: result.reviews.length
             })
           })
-          res.json({recommendations: JSONresponse})
+          // deal with limit and offset, if they were supplied
+          if( JSONresponse.length <= limit ) {
+            // nothing needs to be done
+            res.json({
+              recommendations: JSONresponse,
+              meta: {limit: limit, offset: offset}
+            })
+          } else {
+            // we need to limit the results and also offset (if it was supplied)
+            // offset can't be greater than total number of results
+            res.json({
+              recommendations: JSONresponse.slice(offset, offset+limit),
+              meta: {limit: limit, offset: offset}
+            })
+          }
+
         });
     })
     .catch( (err) => { // didn't find the id
