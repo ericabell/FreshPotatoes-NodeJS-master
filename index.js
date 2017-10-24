@@ -40,108 +40,112 @@ function getFilmRecommendations(req, res) {
   // 1. find the film that was passed in
   models.films.findById(filmId)
     .then( (film) => {
-      // 2. use the genre_id to find all films with that genre and within +/- 15 years
-      let lowDate = new Date(film.release_date);
-      let highDate = new Date(film.release_date);
-      lowDate.setFullYear(lowDate.getFullYear() - 15);
-      highDate.setFullYear(highDate.getFullYear() + 15);
+      if( film ) {
+        // 2. use the genre_id to find all films with that genre and within +/- 15 years
+        let lowDate = new Date(film.release_date);
+        let highDate = new Date(film.release_date);
+        lowDate.setFullYear(lowDate.getFullYear() - 15);
+        highDate.setFullYear(highDate.getFullYear() + 15);
 
-      models.films.findAll({
-        where: {
-          genre_id: film['genre_id'],
-          release_date: {
-            $and: {
-              $gt: lowDate  ,
-              $lt: highDate
+        models.films.findAll({
+          where: {
+            genre_id: film['genre_id'],
+            release_date: {
+              $and: {
+                $gt: lowDate  ,
+                $lt: highDate
+              }
             }
+          },
+          include: [models.genres]
+        })
+        .then( (results) => {
+          // use the external API to check each film and accept only
+          // those films who:
+          // 1. minimum of 5 reviews
+          // 2. average rating greater than 4.0
+          //
+          // build the comma-separated list of films
+          let filmIdList = '';
+          for( let i=0; i<results.length; i++ ) {
+            filmIdList += results[i].id + ',';
           }
-        },
-        include: [models.genres]
-      })
-      .then( (results) => {
-        console.log(results[0].genre.name);
-        // use the external API to check each film and accept only
-        // those films who:
-        // 1. minimum of 5 reviews
-        // 2. average rating greater than 4.0
-        //
-        // build the comma-separated list of films
-        let filmIdList = '';
-        for( let i=0; i<results.length; i++ ) {
-          filmIdList += results[i].id + ',';
-        }
-        // trash the trailing comma...
-        filmIdList = filmIdList.slice(0,-1);
+          // trash the trailing comma...
+          filmIdList = filmIdList.slice(0,-1);
 
-        // build the url request to 3rd party API
-        let options = {
-          uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIdList}`,
-          json: true // Automatically parses the JSON string in the response
-        };
+          // build the url request to 3rd party API
+          let options = {
+            uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIdList}`,
+            json: true // Automatically parses the JSON string in the response
+          };
 
-        // SEND REQUEST TO 3RD PARTY API TO GET REVIEWS
-        request.get(options, (err, response, body)=>{
-          // single response will contain all the reviews as a list
-          let reviews = response.body;
+          // SEND REQUEST TO 3RD PARTY API TO GET REVIEWS
+          request.get(options, (err, response, body)=>{
+            // single response will contain all the reviews as a list
+            let reviews = response.body;
 
-          // go ahead and merge the reviews into the films data
-          for( let j=0; j<results.length; j++ ) {
-            if( results[j].id === reviews[j].film_id ) {
-              results[j].reviews = reviews[j].reviews;
-            } else {
-              console.log('Something in the ordering was wrong.');
+            // go ahead and merge the reviews into the films data
+            for( let j=0; j<results.length; j++ ) {
+              if( results[j].id === reviews[j].film_id ) {
+                results[j].reviews = reviews[j].reviews;
+              } else {
+                console.log('Something in the ordering was wrong.');
+              }
             }
-          }
 
-          // remove films that don't have at least 5 reviews
-          results = results.filter( (result) => {
-            if( result.reviews.length >= 5 ) {
-              return true;
-            }
-            return false;
-          })
-
-          // remove films that don't have an average rating of at least 4.0
-          results = results.filter( (result) => {
-            if( computeAverageRating(result.reviews) > 4.0 ) {
-              return true;
-            }
-            return false;
-          })
-
-          // build the list of films we are going to send back using the
-          // supllied API endpoint specification
-          let JSONresponse = []
-          results.forEach( (result) => {
-            JSONresponse.push({
-              id: result.id,
-              title: result.title,
-              releaseDate: result.release_date,
-              genre: result.genre.name,
-              averageRating: Math.round( computeAverageRating(result.reviews) * 100 ) / 100,
-              reviews: result.reviews.length
+            // remove films that don't have at least 5 reviews
+            results = results.filter( (result) => {
+              if( result.reviews.length >= 5 ) {
+                return true;
+              }
+              return false;
             })
-          })
 
-          // deal with limit and offset, if they were supplied
-          // we need to limit the results and also offset (if it was supplied)
-          // offset can't be greater than total number of results
-          res.json({
-            recommendations: JSONresponse.slice(offset, offset+limit),
-            meta: {limit: limit, offset: offset}
-          })
-        });
+            // remove films that don't have an average rating of at least 4.0
+            results = results.filter( (result) => {
+              if( computeAverageRating(result.reviews) > 4.0 ) {
+                return true;
+              }
+              return false;
+            })
+
+            // build the list of films we are going to send back using the
+            // supllied API endpoint specification
+            let JSONresponse = []
+            results.forEach( (result) => {
+              JSONresponse.push({
+                id: result.id,
+                title: result.title,
+                releaseDate: result.release_date,
+                genre: result.genre.name,
+                averageRating: Math.round( computeAverageRating(result.reviews) * 100 ) / 100,
+                reviews: result.reviews.length
+              })
+            })
+
+            // deal with limit and offset, if they were supplied
+            // we need to limit the results and also offset (if it was supplied)
+            // offset can't be greater than total number of results
+            res.json({
+              recommendations: JSONresponse.slice(offset, offset+limit),
+              meta: {limit: limit, offset: offset}
+            })
+          });
     })
     .catch( (err) => { // didn't find the id
       console.log(err);
-      res.status(422).json({message: err});
+      res.status(422).json({message: '"message" key missing'});
     })
+  } // end if
+  else {
+    res.status(422).json({message: '"message" key missing'});
+  }
   })
   .catch( (err) => { // didn't find the id
     console.log(err);
-    res.status(422).json({message: err});
+    res.status(422).json({message: '"message" key missing'});
   })
-}
+} // end function
 
 function computeAverageRating( reviews ) {
   let total = 0.0;
