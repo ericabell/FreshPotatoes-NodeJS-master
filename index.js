@@ -74,63 +74,7 @@ function getFilmRecommendations(req, res) {
         // go through the reviews and match them up with the films...
         request.get(options, (err, response, body)=>{
           // single response will contain all the reviews as a list
-          response.body.forEach( (film) => {
-
-          })
-          film.reviews = response.body[0].reviews;
-          if(err){
-            return reject(err);
-          }
-          return resolve(film);
-        });
-
-        .then( (filmsWithReviewInfo) => {
-          // console.log('all promises resolved!');
-          // console.log(filmsWithReviewInfo[0].reviews);
-
-          // filter movies with at least 5 reviews
-          let filmsFiltered = filmsWithReviewInfo.filter( (film) => {
-            // console.log(`Checking film_id: ${film.id}`);
-            if( film.reviews.length >= 5 ) {
-              // console.log(`Has 5 or more reviews`);
-              let total = 0;
-              film.reviews.forEach( (review) => {
-                total += review.rating;
-              })
-              let averageRating = total / film.reviews.length;
-              // console.log(`Average Rating: ${averageRating}`);
-              if( averageRating >= 4.0 ) {
-                // console.log(`adding film`);
-                film.averageRating = averageRating;
-                return true;
-              } else {
-                return false;
-              }
-            } else {
-              // console.log(`doesn't have 5 or more reviews`);
-              return false;
-            }
-          })
-
-
-          let recommendations = [];
-          filmsFiltered.forEach( (film) => {
-            // print the id and number of reviews
-            // console.log(`id: ${film.id} with ${film.reviews.length} reviews`);
-            recommendations.push({id: film.id,
-                                  title: film.title,
-                                  releaseDate: film['release_date'],
-                                  genre: film['genre_id'],
-                                  averageRating: film.averageRating,
-                                  reviews: film.reviews.length});
-          })
-
-          res.json({'recommendations': recommendations,
-                    'meta': { limit: 10, offset: 0 }
-                  });
-        })
-        .catch( (error) => {
-          res.send(error);
+          console.log(response.body);
         });
     })
     .catch( (err) => { // didn't find the id
