@@ -10,6 +10,12 @@ const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = proces
 
 const models = require('./models');
 
+// create the relationship between films and genres
+// every film will belongTo a genre
+models.films.belongsTo(models.genres, {
+  foreignKey: 'genre_id'
+});
+
 // START SERVER
 Promise.resolve()
   .then(() => app.listen(PORT, () => console.log(`App listening on port ${PORT}`)))
@@ -41,11 +47,6 @@ function getFilmRecommendations(req, res) {
       highDate.setFullYear(highDate.getFullYear() + 15);
 
       models.films.findAll({
-        // include: [{
-        //     model: models.genres,
-        //     where: { id: Sequelize.col('models.films.genre_id')}
-        // }],
-        attributes: ['id', 'title', 'release_date', 'genre_id'],
         where: {
           genre_id: film['genre_id'],
           release_date: {
@@ -55,6 +56,7 @@ function getFilmRecommendations(req, res) {
             }
           }
         },
+        include: [models.genres]
       })
       .then( (results) => {
         // use the external API to check each film and accept only
@@ -130,11 +132,13 @@ function getFilmRecommendations(req, res) {
         });
     })
     .catch( (err) => { // didn't find the id
-      res.status(422).json({message: '"message" key missing'});
+      console.log(err);
+      res.status(422).json({message: err});
     })
   })
   .catch( (err) => { // didn't find the id
-    res.status(422).json({message: '"message" key missing'});
+    console.log(err);
+    res.status(422).json({message: err});
   })
 }
 
