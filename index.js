@@ -101,7 +101,7 @@ function getFilmRecommendations(req, res) {
             return false;
           })
           console.log(`Working with ${results.length} films.`);
-          res.json({results: results})
+          res.json({recommendations: results})
         });
     })
     .catch( (err) => { // didn't find the id
@@ -119,7 +119,6 @@ function computeAverageRating( reviews ) {
   reviews.forEach( (review) => {
     total += review.rating;
   });
-  console.log(`Average Rating: ${total / numberOfReviews}`);
   return total / numberOfReviews;
 }
 
