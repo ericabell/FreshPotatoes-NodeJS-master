@@ -101,7 +101,18 @@ function getFilmRecommendations(req, res) {
             return false;
           })
           console.log(`Working with ${results.length} films.`);
-          res.json({recommendations: results})
+          let JSONresponse = []
+          results.forEach( (result) => {
+            JSONresponse.push({
+              id: result.id,
+              title: result.title,
+              releaseDate: result.release_date,
+              genre: result.genre_id,
+              averageRating: Math.round( computeAverageRating(result.reviews) * 10 ) / 10,
+              reviews: result.reviews.length
+            })
+          })
+          res.json({recommendations: JSONresponse})
         });
     })
     .catch( (err) => { // didn't find the id
