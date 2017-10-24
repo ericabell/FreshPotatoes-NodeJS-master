@@ -59,6 +59,7 @@ function getFilmRecommendations(req, res) {
         include: [models.genres]
       })
       .then( (results) => {
+        console.log(results[0].genre.name);
         // use the external API to check each film and accept only
         // those films who:
         // 1. minimum of 5 reviews
@@ -116,7 +117,7 @@ function getFilmRecommendations(req, res) {
               id: result.id,
               title: result.title,
               releaseDate: result.release_date,
-              genre: result.genre_id,
+              genre: result.genre.name,
               averageRating: Math.round( computeAverageRating(result.reviews) * 100 ) / 100,
               reviews: result.reviews.length
             })
