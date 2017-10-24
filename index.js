@@ -85,7 +85,16 @@ function getFilmRecommendations(req, res) {
             }
           }
           console.log('All reviews merged.');
-          console.dir(`${results[0].reviews}`);
+          console.log(`Working with ${results.length} films.`);
+          // filter accordingly
+          results = results.filter( (result) => {
+            if( result.reviews.length >= 5 ) {
+              return true;
+            }
+            return false;
+          })
+          console.log(`Working with ${results.length} films.`);
+
         });
     })
     .catch( (err) => { // didn't find the id
