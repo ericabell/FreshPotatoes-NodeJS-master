@@ -74,7 +74,18 @@ function getFilmRecommendations(req, res) {
         // go through the reviews and match them up with the films...
         request.get(options, (err, response, body)=>{
           // single response will contain all the reviews as a list
-          console.log(response.body);
+          let reviews = response.body;
+          console.log(`${reviews.length} reviews have been received!`);
+          // go ahead and merge the reviews into the films data
+          for( let j=0; j<results.length; j++ ) {
+            if( results[j].id === reviews[j].film_id ) {
+              results[j].reviews = reviews[j].reviews;
+            } else {
+              console.log('Something in the ordering was wrong.');
+            }
+          }
+          console.log('All reviews merged.');
+          console.dir(`${results[0].reviews}`);
         });
     })
     .catch( (err) => { // didn't find the id
