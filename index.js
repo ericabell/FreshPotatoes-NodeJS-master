@@ -94,7 +94,13 @@ function getFilmRecommendations(req, res) {
             return false;
           })
           console.log(`Working with ${results.length} films.`);
-
+          results = results.filter( (result) => {
+            if( computeAverageRating(result.reviews) > 4.0 ) {
+              return true;
+            }
+            return false;
+          })
+          console.log(`Working with ${results.length} films.`);
         });
     })
     .catch( (err) => { // didn't find the id
@@ -105,6 +111,17 @@ function getFilmRecommendations(req, res) {
     res.status(422).json({message: '"message" key missing'});
   })
 }
+
+function computeAverageRating( reviews ) {
+  let total = 0.0;
+  let numberOfReviews = reviews.length;
+  reviews.forEach( (review) => {
+    total += review.rating;
+  });
+  console.log(`Average Rating: ${total / numberOfReviews}`);
+  return total / numberOfReviews;
+}
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
