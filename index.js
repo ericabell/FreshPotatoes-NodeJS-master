@@ -20,8 +20,6 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
-  let queryKeys = Object.keys(req.query);
-  console.dir(`${req.query.limit}, ${req.query.offset}`);
   // query keys might be 'limit' and 'offset'
   let limit = 10;
   if( req.query.limit ) {
@@ -31,9 +29,6 @@ function getFilmRecommendations(req, res) {
   if( req.query.offset ) {
     offset = parseInt(req.query.offset);
   }
-
-  console.log(`limit was received as: ${limit}`);
-  console.log(`offset was received as: ${offset}`);
 
   let filmId = req.params.id;
   // 1. find the film that was passed in
@@ -67,7 +62,6 @@ function getFilmRecommendations(req, res) {
         // 1. minimum of 5 reviews
         // 2. average rating greater than 4.0
         //
-        // we can submit ALL the film ids in one request and NOT ONE AT A TIME!
         // build the comma-separated list of films
         let filmIdList = '';
         for( let i=0; i<results.length; i++ ) {
@@ -75,19 +69,18 @@ function getFilmRecommendations(req, res) {
         }
         // trash the trailing comma...
         filmIdList = filmIdList.slice(0,-1);
-        console.log(filmIdList);
-        // console.log('in results');
+
+        // build the url request to 3rd party API
         let options = {
           uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIdList}`,
           json: true // Automatically parses the JSON string in the response
         };
-        // console.log(options);
-        // TODO: now that we have made the one request to get all the reviews,
-        // go through the reviews and match them up with the films...
+
+        // SEND REQUEST TO 3RD PARTY API TO GET REVIEWS
         request.get(options, (err, response, body)=>{
           // single response will contain all the reviews as a list
           let reviews = response.body;
-          console.log(`${reviews.length} reviews have been received!`);
+
           // go ahead and merge the reviews into the films data
           for( let j=0; j<results.length; j++ ) {
             if( results[j].id === reviews[j].film_id ) {
@@ -96,23 +89,25 @@ function getFilmRecommendations(req, res) {
               console.log('Something in the ordering was wrong.');
             }
           }
-          console.log('All reviews merged.');
-          console.log(`Working with ${results.length} films.`);
-          // filter accordingly
+
+          // remove films that don't have at least 5 reviews
           results = results.filter( (result) => {
             if( result.reviews.length >= 5 ) {
               return true;
             }
             return false;
           })
-          console.log(`Working with ${results.length} films.`);
+
+          // remove films that don't have an average rating of at least 4.0
           results = results.filter( (result) => {
             if( computeAverageRating(result.reviews) > 4.0 ) {
               return true;
             }
             return false;
           })
-          console.log(`Working with ${results.length} films.`);
+
+          // build the list of films we are going to send back using the
+          // supllied API endpoint specification
           let JSONresponse = []
           results.forEach( (result) => {
             JSONresponse.push({
@@ -124,22 +119,14 @@ function getFilmRecommendations(req, res) {
               reviews: result.reviews.length
             })
           })
-          // deal with limit and offset, if they were supplied
-          if( JSONresponse.length <= limit ) {
-            // nothing needs to be done
-            res.json({
-              recommendations: JSONresponse,
-              meta: {limit: limit, offset: offset}
-            })
-          } else {
-            // we need to limit the results and also offset (if it was supplied)
-            // offset can't be greater than total number of results
-            res.json({
-              recommendations: JSONresponse.slice(offset, offset+limit),
-              meta: {limit: limit, offset: offset}
-            })
-          }
 
+          // deal with limit and offset, if they were supplied
+          // we need to limit the results and also offset (if it was supplied)
+          // offset can't be greater than total number of results
+          res.json({
+            recommendations: JSONresponse.slice(offset, offset+limit),
+            meta: {limit: limit, offset: offset}
+          })
         });
     })
     .catch( (err) => { // didn't find the id
