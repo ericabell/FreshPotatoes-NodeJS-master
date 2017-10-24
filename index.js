@@ -101,6 +101,7 @@ function getFilmRecommendations(req, res) {
             return false;
           })
           console.log(`Working with ${results.length} films.`);
+          res.json({results: results})
         });
     })
     .catch( (err) => { // didn't find the id
