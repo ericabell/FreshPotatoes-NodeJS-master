@@ -160,7 +160,7 @@ function computeAverageRating( reviews ) {
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   console.log('caught missing route');
-  res.status(404).json({message: '"message" key missing'});
+  res.status(404).json({message: 'Page not found'});
 });
 
 
