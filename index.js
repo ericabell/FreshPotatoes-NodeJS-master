@@ -13,7 +13,9 @@ const models = require('./models');
 // create the relationship between films and genres
 // every film will belongTo a genre
 models.films.belongsTo(models.genres, {
-  foreignKey: 'genre_id'
+  foreignKey: 'genre_id'  // and since we were given an existing db, we have to make
+                          // sure that the name of the foreignKey field matches with
+                          // what's already in the db.
 });
 
 // START SERVER
