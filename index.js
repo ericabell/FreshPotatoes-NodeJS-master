@@ -44,16 +44,14 @@ function getFilmRecommendations(req, res) {
         // 2. use the genre_id to find all films with that genre and within +/- 15 years
         let lowDate = new Date(film.release_date);
         let highDate = new Date(film.release_date);
-        lowDate.setFullYear(lowDate.getFullYear() - 15);
-        highDate.setFullYear(highDate.getFullYear() + 15);
 
         models.films.findAll({
           where: {
             genre_id: film['genre_id'],
             release_date: {
               $and: {
-                $gt: lowDate  ,
-                $lt: highDate
+                $gt: lowDate.setFullYear(lowDate.getFullYear() - 15)  ,
+                $lt: highDate.setFullYear(highDate.getFullYear() + 15)
               }
             }
           },
@@ -136,8 +134,8 @@ function getFilmRecommendations(req, res) {
       console.log(err);
       res.status(422).json({message: '"message" key missing'});
     })
-  } // end if
-  else {
+  } // end if that handles if we actually found a film or not
+  else { // if we didn't, handle it with a 422 and this message
     res.status(422).json({message: '"message" key missing'});
   }
   })

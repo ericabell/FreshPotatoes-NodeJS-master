@@ -94,7 +94,7 @@ describe('Recommendations API', function() {
             },
           ],
           meta: { limit: 10, offset: 0 },
-        }, done
+        }, done()
       );
   });
 
@@ -117,7 +117,7 @@ describe('Recommendations API', function() {
               },
             ],
             meta: { limit: 1, offset: 0 },
-          }, done
+          }, done()
         );
     });
 
@@ -147,7 +147,7 @@ describe('Recommendations API', function() {
               },
             ],
             meta: { limit: 10, offset: 1 },
-          }, done
+          }, done()
         );
     });
   });
